@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { use, useEffect, useState } from "react";
 import { FaCat, FaCheckCircle, FaHome, FaUser } from "react-icons/fa";
 
 export default function RegisterSuccessPage() {
-  const imgUrl = localStorage.getItem("imgUrl");
+  const [imgUrl, setImgUrl] = useState("");
+  useEffect(() => {
+    setImgUrl(localStorage.getItem("imgUrl"));
+  }, []);
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-pink-50 to-purple-100">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
