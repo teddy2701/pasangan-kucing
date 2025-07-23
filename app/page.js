@@ -400,25 +400,38 @@ const CatMatch = () => {
           )}
 
           {filteredAllCats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAllCats.map((cat) => (
-                <Cards
-                  key={cat._id}
-                  cat={{
-                    id: cat._id,
-                    name: cat.nama,
-                    breed: cat.ras,
-                    age: Math.floor(
-                      (Date.now() - new Date(cat.tglLahir).getTime()) /
-                        (1000 * 60 * 60 * 24 * 30)
-                    ),
-                    color: cat.warna,
-                    gender: cat.jenisKelamin === "jantan" ? "Jantan" : "Betina",
-                    description: cat.deskripsi,
-                    image: cat.foto || "/default-cat.jpg",
-                  }}
-                />
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+              {filteredAllCats
+                .slice(
+                  0,
+                  typeof window !== "undefined"
+                    ? window.innerWidth < 640
+                      ? 3 // HP: 3 data
+                      : window.innerWidth < 1024
+                      ? 6 // Tablet: 6 data
+                      : 9 // Desktop: 9 data
+                    : 9 // Fallback untuk SSR
+                )
+                .map((cat) => (
+                  <Cards
+                    key={cat._id}
+                    cat={{
+                      id: cat._id,
+                      name: cat.nama,
+                      breed: cat.ras,
+                      age: Math.floor(
+                        (Date.now() - new Date(cat.tglLahir).getTime()) /
+                          (1000 * 60 * 60 * 24 * 30)
+                      ),
+                      color: cat.warna,
+                      gender:
+                        cat.jenisKelamin === "jantan" ? "Jantan" : "Betina",
+                      description: cat.deskripsi,
+                      image: cat.foto || "/default-cat.jpg",
+                    }}
+                    textSize="text-sm md:text-base" // Menyesuaikan ukuran teks
+                  />
+                ))}
             </div>
           ) : (
             <div className="text-center py-8">

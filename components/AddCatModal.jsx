@@ -337,7 +337,12 @@ const AddCatModal = ({ isOpen, onClose, onAddCat }) => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end items-center gap-3 mt-6">
+              {error && (
+                <div className="bg-red-100 text-red-700 rounded-lg text-sm py-2 px-6">
+                  {error}
+                </div>
+              )}{" "}
               <button
                 type="button"
                 onClick={onClose}

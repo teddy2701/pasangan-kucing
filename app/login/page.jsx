@@ -43,8 +43,8 @@ export default function LoginPage() {
         router.push("/"); // Arahkan ke dashboard setelah login
       }
     } catch (error) {
-      setError("Terjadi kesalahan saat login. Silakan coba lagi.");
-      console.error("Login error:", error);
+      setError(error.response?.data.message || "");
+      console.error("Login error:", error.response?.data || "");
       return;
     }
   };
