@@ -1,7 +1,7 @@
 // app/profile/page.jsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -23,6 +23,8 @@ const ProfilePage = () => {
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pasanganKucing, setPasanganKucing] = useState([]);
+  const [selectedCatId, setSelectedCatId] = useState(null);
 
   useEffect(() => {
     const catOwner = async () => {
@@ -40,11 +42,33 @@ const ProfilePage = () => {
       const response = await axios.get(
         `${process.env.API_URL}/api/cat/owner/${dataUser.id}`
       );
-      setCats(response.data.cat);
+      const catOwner = response.data.cat;
+
+      if (catOwner.length > 0) {
+        setSelectedCatId(catOwner[0]._id);
+      }
+      setCats(catOwner);
       setLoading(false);
     };
     catOwner();
   }, []);
+
+  useEffect(() => {
+    const fetchPasanganKucing = async () => {
+      if (selectedCatId === null) return;
+      try {
+        const response = await axios.get(
+          `${process.env.API_URL}/api/cat/perjodohan/get/${selectedCatId}`
+        );
+        console.log("cek kucing perjodohan", response.data);
+        setPasanganKucing(response.data);
+      } catch (error) {
+        console.error("Error fetching pasangan kucing:", error);
+      }
+    };
+
+    fetchPasanganKucing();
+  }, [selectedCatId]);
 
   const [showAddCatModal, setShowAddCatModal] = useState(false);
   const router = useRouter();
@@ -173,7 +197,7 @@ const ProfilePage = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 border-b pb-8">
               {cats.map((cat) => (
                 <Cards
                   key={cat._id}
@@ -195,16 +219,64 @@ const ProfilePage = () => {
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Tombol Aksi */}
-        <div className="mt-8 flex flex-wrap gap-4">
-          <button
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-lg"
-            onClick={() => router.push("/")}
-          >
-            <FaPaw className="inline mr-2" /> Cari Pasangan Kucing
-          </button>
+          {/* Bagian perjodohan */}
+          <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-purple-700 flex items-center">
+                <FaHeart className="mr-2" /> Pasangan Kucing Saya
+              </h2>
+              {error && (
+                <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="">
+                <select
+                  value={selectedCatId || ""}
+                  onChange={(e) => setSelectedCatId(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {cats.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.nama} ({cat.ras})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pasanganKucing && pasanganKucing?.length > 0 ? (
+                pasanganKucing?.map((cat) => (
+                  <Cards
+                    key={cat._id}
+                    pasangan={true}
+                    selectedCat={selectedCatId}
+                    cat={{
+                      id: cat._id,
+                      name: cat.nama,
+                      breed: cat.ras,
+                      age: Math.floor(
+                        (Date.now() - new Date(cat.tglLahir).getTime()) /
+                          (1000 * 60 * 60 * 24 * 30)
+                      ),
+                      status: cat.status,
+                      color: cat.warna,
+                      gender:
+                        cat.jenisKelamin === "jantan" ? "Jantan" : "Betina",
+                      description: cat.deskripsi,
+                      image: cat.foto || "/default-cat.jpg",
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center text-gray-500">
+                  Belum ada pasangan
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

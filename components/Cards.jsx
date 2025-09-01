@@ -1,7 +1,33 @@
-// components/Cards.jsx
 import Link from "next/link";
+import axios from "axios";
+import { useState } from "react";
 
-const Cards = ({ cat, textSize = "text-base" }) => {
+const Cards = ({
+  cat: initialCat,
+  textSize = "text-base",
+  pasangan,
+  selectedCat,
+}) => {
+  const cekPasangan = pasangan ? pasangan : false;
+  const catIdOwner = selectedCat ? selectedCat : null;
+  const [cat, setCat] = useState(initialCat); // state lokal
+
+  const handleSimpanKonfirmasi = async (status) => {
+    try {
+      await axios.post(`${process.env.API_URL}/api/cat/perjodohan/update`, {
+        kucing1: catIdOwner,
+        kucing2: cat.id,
+        status: status,
+      });
+      // update state lokal setelah sukses
+      setCat((prev) => ({ ...prev, status: status ? "berhasil" : "gagal" }));
+
+      window.alert("Stasus berhasil Di Update");
+    } catch (error) {
+      console.error("Error menyimpan konfirmasi:", error);
+    }
+  };
+
   return (
     <div className="bg-white h-full flex flex-col rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative">
@@ -71,17 +97,47 @@ const Cards = ({ cat, textSize = "text-base" }) => {
           </span>
         </div>
 
-        <p className={`text-gray-600 mb-4 line-clamp-2 ${textSize}`}>
-          {cat.description}
-        </p>
+        {!cekPasangan && (
+          <p className={`text-gray-600 mb-4 line-clamp-2 ${textSize}`}>
+            {cat.description}
+          </p>
+        )}
 
-        <div className="flex justify-start items-center ri">
-          <Link
-            href={`/cats/${cat.id}`}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg"
-          >
-            Lihat Detail
-          </Link>
+        {cekPasangan && (
+          <p className={`text-gray-600 mb-4 line-clamp-2 ${textSize}`}>
+            Status Perjodohan:{" "}
+            {cat.status === "pending"
+              ? "Menunggu Konfirmasi"
+              : cat.status === "berhasil"
+              ? "Berhasil"
+              : "Gagal"}
+          </p>
+        )}
+
+        <div className="flex justify-start items-center ">
+          {cekPasangan && cat.status == "pending" ? (
+            <div className="flex justify-between items-center border-t pt-4 w-full gap-2">
+              <button
+                className="bg-red-300  font-medium py-2 px-4 rounded-lg  cursor-pointer"
+                onClick={() => handleSimpanKonfirmasi(false)}
+              >
+                Gagal
+              </button>
+              <button
+                className="bg-green-300 font-medium py-2 px-4 rounded-lg  cursor-pointer"
+                onClick={() => handleSimpanKonfirmasi(true)}
+              >
+                Berhasil
+              </button>
+            </div>
+          ) : (
+            <Link
+              href={`/cats/${cat.id}`}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg"
+            >
+              Lihat Detail
+            </Link>
+          )}
         </div>
       </div>
     </div>

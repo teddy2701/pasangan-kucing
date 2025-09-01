@@ -39,9 +39,13 @@ const CatMatch = () => {
 
           const userCatsData = userCatsRes.data.cat;
           setUserCats(userCatsData);
+          const kucingDipilih = localStorage.getItem("selectedCat");
 
           // Otomatis pilih kucing pertama jika ada
-          if (userCatsData.length > 0) {
+          if (kucingDipilih) {
+            setSelectedCat(kucingDipilih);
+          } else if (userCatsData.length > 0) {
+            localStorage.setItem("selectedCat", userCatsData[0]._id);
             setSelectedCat(userCatsData[0]._id);
           }
         }
@@ -122,6 +126,11 @@ const CatMatch = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleChangeCat = (value) => {
+    localStorage.setItem("selectedCat", value);
+    setSelectedCat(value);
+  };
+
   const resetFilters = () => {
     setFilters({
       breed: "",
@@ -174,7 +183,7 @@ const CatMatch = () => {
                   </label>
                   <select
                     value={selectedCat || ""}
-                    onChange={(e) => setSelectedCat(e.target.value)}
+                    onChange={(e) => handleChangeCat(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     {userCats.map((cat) => (

@@ -19,7 +19,7 @@ const CatDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [cat, setCat] = useState(null);
-
+  const [deteksi, setDeteksi] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -35,7 +35,6 @@ const CatDetailPage = () => {
 
         const catData = response.data.cat;
         setCat(catData);
-        console.log("Cat data fetched:", catData);
 
         setLoading(false);
       } catch (error) {
@@ -47,6 +46,31 @@ const CatDetailPage = () => {
     };
     fetchCatData();
   }, [id]);
+
+  const addPasangan = async () => {
+    const kucing1 = localStorage.getItem("selectedCat");
+    const kucing2 = id;
+
+    if (kucing1 === kucing2) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${process.env.API_URL}/api/cat/perjodohan/add`,
+        {
+          kucing1Id: kucing1,
+          kucing2Id: kucing2,
+        }
+      );
+      if (response.status === 200) {
+        console.log("Berhasil menambahkan pasangan:", response.data);
+        setDeteksi(true);
+      }
+    } catch (error) {
+      console.error("Error adding pasangan:", error);
+    }
+  };
 
   if (loading || !cat) {
     return (
@@ -175,15 +199,18 @@ const CatDetailPage = () => {
               </div>
 
               <div className="flex gap-4">
-                <Link
-                  href={`https://wa.me/${cat?.ownerPhone}`}
-                  className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50 font-bold py-3 px-6 rounded-lg"
-                  target="_blank"
-                >
-                  <span className="flex items-center justify-center">
-                    Hubungi Pemilik
-                  </span>
-                </Link>
+                {!deteksi && (
+                  <Link
+                    href={`https://wa.me/${cat?.ownerPhone}`}
+                    className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50 font-bold py-3 px-6 rounded-lg"
+                    target="_blank"
+                    onClick={addPasangan}
+                  >
+                    <span className="flex items-center justify-center">
+                      Hubungi Pemilik
+                    </span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
