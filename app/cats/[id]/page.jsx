@@ -47,6 +47,20 @@ const CatDetailPage = () => {
     fetchCatData();
   }, [id]);
 
+  // Fungsi konversi nomor telepon
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return "";
+    // Jika dimulai dengan "0" -> ganti jadi "+62"
+    if (phone.startsWith("0")) {
+      return "+62" + phone.slice(1);
+    }
+    // Jika sudah ada "+62", biarkan saja
+    if (phone.startsWith("+62")) {
+      return phone;
+    }
+    return phone; // fallback
+  };
+
   const addPasangan = async () => {
     const kucing1 = localStorage.getItem("selectedCat");
     const kucing2 = id;
@@ -201,7 +215,7 @@ const CatDetailPage = () => {
               <div className="flex gap-4">
                 {!deteksi && (
                   <Link
-                    href={`https://wa.me/${cat?.ownerPhone}`}
+                    href={`https://wa.me/${formatPhoneNumber(cat?.ownerPhone)}`}
                     className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50 font-bold py-3 px-6 rounded-lg"
                     target="_blank"
                     onClick={addPasangan}
