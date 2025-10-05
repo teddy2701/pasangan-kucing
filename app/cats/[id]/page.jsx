@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import Link from "next/link";
-
 import {
   FaCat,
   FaVenusMars,
-  FaCalendar,
   FaPalette,
-  FaHeart,
+  FaHome,
   FaArrowLeft,
 } from "react-icons/fa";
 import axios from "axios";
@@ -19,24 +17,42 @@ const CatDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [cat, setCat] = useState(null);
-  const [deteksi, setDeteksi] = useState(false);
+  const [prediksiAnak, setPrediksiAnak] = useState(null);
+  const [errorPrediksi, setErrorPrediksi] = useState(null); // state khusus error prediksi
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulasi pengambilan data dari API
-    // Di sini Anda bisa menggunakan fetch atau axios untuk mendapatkan data kucing berdasarkan I
     const fetchCatData = async () => {
       setLoading(true);
       try {
+        // ambil detail kucing
         const response = await axios.get(
           `${process.env.API_URL}/api/cat/${id}`
         );
-
         const catData = response.data.cat;
         setCat(catData);
 
-        setLoading(false);
+        // ambil id kucing yang dipilih sebelumnya dari localStorage
+        const kucing1 = localStorage.getItem("selectedCat");
+        const kucing2 = id;
+
+        if (kucing1 && kucing2) {
+          try {
+            const prediksiRes = await axios.post(
+              `${process.env.API_URL}/api/cat/prediksi`,
+              { kucing1Id: kucing1, kucing2Id: kucing2 }
+            );
+            setPrediksiAnak(prediksiRes.data.data);
+            setErrorPrediksi(null); // reset error jika sukses
+          } catch (err) {
+            console.error("Error prediksi:", err.response?.data);
+            setErrorPrediksi(
+              err.response?.data?.message || "Gagal melakukan prediksi"
+            );
+            setPrediksiAnak(null);
+          }
+        }
       } catch (error) {
         console.error("Error fetching cat data:", error);
         setError("Kucing tidak ditemukan");
@@ -47,43 +63,15 @@ const CatDetailPage = () => {
     fetchCatData();
   }, [id]);
 
-  // Fungsi konversi nomor telepon
   const formatPhoneNumber = (phone) => {
     if (!phone) return "";
-    // Jika dimulai dengan "0" -> ganti jadi "+62"
     if (phone.startsWith("0")) {
       return "+62" + phone.slice(1);
     }
-    // Jika sudah ada "+62", biarkan saja
     if (phone.startsWith("+62")) {
       return phone;
     }
-    return phone; // fallback
-  };
-
-  const addPasangan = async () => {
-    const kucing1 = localStorage.getItem("selectedCat");
-    const kucing2 = id;
-
-    if (kucing1 === kucing2) {
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${process.env.API_URL}/api/cat/perjodohan/add`,
-        {
-          kucing1Id: kucing1,
-          kucing2Id: kucing2,
-        }
-      );
-      if (response.status === 200) {
-        console.log("Berhasil menambahkan pasangan:", response.data);
-        setDeteksi(true);
-      }
-    } catch (error) {
-      console.error("Error adding pasangan:", error);
-    }
+    return phone;
   };
 
   if (loading || !cat) {
@@ -142,15 +130,13 @@ const CatDetailPage = () => {
             </div>
 
             <div className="md:w-1/2 p-8">
-              <div className="flex justify-between items-start mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  {cat?.name}
-                </h1>
-              </div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-6">
+                {cat?.name}
+              </h1>
 
               <div className="flex items-center mb-4">
                 <span className="bg-purple-100 text-purple-800 text-lg font-medium px-4 py-1 rounded mr-4">
-                  {cat?.age} tahun
+                  {cat?.age} bulan
                 </span>
                 <span
                   className={`px-4 py-1 rounded-full text-lg font-medium ${
@@ -195,11 +181,11 @@ const CatDetailPage = () => {
                 </div>
 
                 <div className="flex items-center">
-                  <FaCalendar className="text-purple-500 mr-3 text-xl" />
+                  <FaHome className="text-purple-500 mr-3 text-xl" />
                   <div>
-                    <h3 className="text-gray-500 text-sm">Tanggal Lahir</h3>
+                    <h3 className="text-gray-500 text-sm">Alamat</h3>
                     <p className="text-gray-800 font-medium">
-                      {cat?.birthDate}
+                      {cat?.ownerAddress}
                     </p>
                   </div>
                 </div>
@@ -212,19 +198,50 @@ const CatDetailPage = () => {
                 <p className="text-gray-600">{cat?.description}</p>
               </div>
 
+              {/* Prediksi Anak atau Error */}
+              {errorPrediksi && (
+                <div className="mb-8 p-4 border border-red-300 rounded-lg bg-red-50">
+                  <h3 className="text-xl font-bold text-red-700 mb-2">
+                    Prediksi Gagal
+                  </h3>
+                  <p className="text-gray-800">{errorPrediksi}</p>
+                </div>
+              )}
+
+              {prediksiAnak && (
+                <div className="mb-8 p-4 border border-purple-300 rounded-lg bg-purple-50">
+                  <h3 className="text-xl font-bold text-purple-700 mb-3">
+                    Prediksi Anak
+                  </h3>
+                  <p className="text-gray-800">
+                    <span className="font-semibold">Induk Jantan:</span>{" "}
+                    {prediksiAnak.indukJantan}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-semibold">Induk Betina:</span>{" "}
+                    {prediksiAnak.indukBetina}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-semibold">Ras Anak:</span>{" "}
+                    {prediksiAnak.rasAnak}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-semibold">Warna Anak:</span>{" "}
+                    {prediksiAnak.warnaAnak}
+                  </p>
+                </div>
+              )}
+
               <div className="flex gap-4">
-                {!deteksi && (
-                  <Link
-                    href={`https://wa.me/${formatPhoneNumber(cat?.ownerPhone)}`}
-                    className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50 font-bold py-3 px-6 rounded-lg"
-                    target="_blank"
-                    onClick={addPasangan}
-                  >
-                    <span className="flex items-center justify-center">
-                      Hubungi Pemilik
-                    </span>
-                  </Link>
-                )}
+                <Link
+                  href={`https://wa.me/${formatPhoneNumber(cat?.ownerPhone)}`}
+                  className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50 font-bold py-3 px-6 rounded-lg"
+                  target="_blank"
+                >
+                  <span className="flex items-center justify-center">
+                    Hubungi Pemilik
+                  </span>
+                </Link>
               </div>
             </div>
           </div>

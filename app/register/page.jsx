@@ -146,6 +146,11 @@ export default function RegisterPage() {
       if (catPhoto) {
         dataSubmit.append("catPhoto", catPhoto);
       }
+
+      console.log("dataForm:", dataSubmit);
+      console.log("formData:", formData);
+
+      // Kirim data ke API
       const response = await axios.post(
         `${process.env.API_URL}/api/users/add`,
         dataSubmit,

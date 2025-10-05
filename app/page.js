@@ -38,6 +38,7 @@ const CatMatch = () => {
           );
 
           const userCatsData = userCatsRes.data.cat;
+          console.log("User Cats:", userCatsData);
           setUserCats(userCatsData);
           const kucingDipilih = localStorage.getItem("selectedCat");
 
@@ -68,6 +69,7 @@ const CatMatch = () => {
   // Dapatkan rekomendasi saat kucing dipilih
   useEffect(() => {
     const fetchRecommendations = async () => {
+      console.log("Fetching recommendations for cat:", selectedCat);
       if (selectedCat) {
         setRecommendLoading(true);
         try {
